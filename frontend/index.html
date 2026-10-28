@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MilestonePay</title>
+<link rel="icon" href="favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7fb; --card: #ffffff; --text: #0f172a; --muted: #64748b; --line: #e2e8f0;
+    --brand: #4f46e5; --brand2: #06b6d4; --ok: #059669; --warn: #d97706; --bad: #dc2626;
+    --chip: #eef2ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0b1020; --card: #121a2e; --text: #e2e8f0; --muted: #94a3b8; --line: #1f2a44; --chip: #1e1b4b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 24px; border-bottom: 1px solid var(--line); background: var(--card); position: sticky; top: 0; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
+  .brand img { width: 34px; height: 34px; }
+  .brand span { color: var(--brand); }
+  main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  h2 { margin: 0 0 4px; font-size: 18px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--text); font: inherit; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .row { grid-template-columns: 1fr; } header { padding: 12px 16px; } }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; }
+  button.ghost { background: transparent; color: var(--brand); border: 1px solid var(--line); }
+  button.small { padding: 6px 10px; font-size: 13px; }
+  button.bad { background: var(--bad); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .ms-inputs { display: grid; gap: 8px; }
+  .ms-inputs div { display: flex; gap: 8px; align-items: center; }
+  .ms-inputs span { color: var(--muted); font-size: 13px; width: 90px; flex: none; }
+  .total { margin: 12px 0; font-weight: 600; }
+  .project { border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 12px; }
+  .project-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+  .project h3 { margin: 0; font-size: 16px; }
+  .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+    background: var(--chip); color: var(--brand); margin-left: 6px; }
+  .meta { color: var(--muted); font-size: 13px; margin: 6px 0 10px; word-break: break-all; }
+  .ms { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center;
+    padding: 10px 0; border-top: 1px dashed var(--line); }
+  @media (max-width: 640px) { .ms { grid-template-columns: 1fr; } }
+  .status { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .s0 { color: var(--muted); } .s1 { color: var(--warn); } .s2 { color: var(--bad); } .s3 { color: var(--ok); } .s4 { color: var(--muted); }
+  .proof { font-size: 13px; color: var(--muted); word-break: break-all; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff;
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; display: none; max-width: 90vw; z-index: 10; }
+  .empty { color: var(--muted); font-size: 14px; }
+  .hero { display: flex; gap: 20px; align-items: center; }
+  .hero img { width: 72px; height: 72px; flex: none; }
+  .hero p { margin: 4px 0 0; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><img src="favicon.png" alt="" /><div>Milestone<span>Pay</span></div></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="acct" class="meta" style="margin:0"></span>
+    <button id="connectBtn">Connect wallet</button>
+  </div>
+</header>
+
+<main>
+  <section class="card hero">
+    <img src="favicon.png" alt="MilestonePay logo" />
+    <div>
+      <h2>Get paid milestone by milestone — in POT</h2>
+      <p>Clients lock POT up front. Freelancers deliver and get paid per milestone. If the client goes silent, the freelancer can claim after the review period. Disputes go to a neutral arbiter.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>New project</h2>
+    <p class="sub">You are the client. The full amount is locked in the contract when you create the project.</p>
+    <label for="title">Project title</label>
+    <input id="title" maxlength="100" placeholder="e.g. Landing page redesign" />
+    <div class="row">
+      <div><label for="freelancer">Freelancer address</label><input id="freelancer" placeholder="0x…" /></div>
+      <div><label for="arbiter">Arbiter address (optional)</label><input id="arbiter" placeholder="0x… — leave empty for no disputes" /></div>
+    </div>
+    <div class="row">
+      <div><label for="msCount">Number of milestones</label><input id="msCount" type="number" min="1" max="20" value="3" /></div>
+      <div><label for="review">Review period (minutes)</label><input id="review" type="number" min="1" value="5" /></div>
+    </div>
+    <label>Milestone amounts (POT)</label>
+    <div id="msInputs" class="ms-inputs"></div>
+    <div class="total">Total to lock: <span id="total">0</span> POT</div>
+    <button id="createBtn">Create &amp; fund project</button>
+  </section>
+
+  <section class="card">
+    <div class="project-head">
+      <div><h2>My projects</h2><p class="sub" style="margin:0">As client, freelancer or arbiter.</p></div>
+      <button class="ghost small" id="refreshBtn">Refresh</button>
+    </div>
+    <div id="projects"><p class="empty">Connect your wallet to see your projects.</p></div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="abi.js"></script>
+<script>
+const CFG = window.MILESTONEPAY_CONFIG;
+const STATUS = ["Pending", "Submitted", "Disputed", "Released", "Refunded"];
+let provider, signer, contract, me;
+
+const $ = (id) => document.getElementById(id);
+const short = (a) => a ? a.slice(0, 6) + "…" + a.slice(-4) : "";
+const fmt = (wei) => ethers.formatUnits(wei, CFG.currency.decimals);
+
+function toast(msg, ms = 4000) {
+  const t = $("toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(t._h); t._h = setTimeout(() => (t.style.display = "none"), ms);
+}
+
+function errMsg(e) {
+  const data = e?.data || e?.info?.error?.data || e?.error?.data;
+  if (data && contract) { try { return contract.interface.parseError(data).name; } catch {} }
+  return e?.shortMessage || e?.reason || e?.message || String(e);
+}
+
+// ---------- milestone inputs ----------
+function renderMsInputs() {
+  const n = Math.max(1, Math.min(20, Number($("msCount").value) || 1));
+  const box = $("msInputs"); const old = [...box.querySelectorAll("input")].map((i) => i.value);
+  box.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement("div");
+    d.innerHTML = `<span>Milestone ${i + 1}</span><input type="number" min="0" step="any" value="${old[i] ?? "1"}" />`;
+    box.appendChild(d);
+  }
+  box.querySelectorAll("input").forEach((i) => i.addEventListener("input", updateTotal));
+  updateTotal();
+}
+function amounts() {
+  return [...$("msInputs").querySelectorAll("input")].map((i) => ethers.parseUnits(i.value || "0", CFG.currency.decimals));
+}
+function updateTotal() {
+  try { $("total").textContent = fmt(amounts().reduce((a, b) => a + b, 0n)); } catch { $("total").textContent = "–"; }
+}
+$("msCount").addEventListener("input", renderMsInputs);
+renderMsInputs();
+
+// ---------- wallet ----------
+async function ensureNetwork() {
+  if (!CFG.chainId) return;
+  const hex = "0x" + Number(CFG.chainId).toString(16);
+  try {
+    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{ chainId: hex, chainName: CFG.chainName, rpcUrls: [CFG.rpcUrl],
+          nativeCurrency: CFG.currency, blockExplorerUrls: CFG.explorerUrl ? [CFG.explorerUrl] : undefined }],
+      });
+    } else throw e;
+  }
+}
+
+async function connect() {
+  if (!window.ethereum) return toast("No wallet found. Install MetaMask (or another EVM wallet).");
+  try {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    await ensureNetwork();
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    me = (await signer.getAddress()).toLowerCase();
+    contract = new ethers.Contract(CFG.contractAddress, window.MILESTONEPAY_ABI, signer);
+    const bal = await provider.getBalance(me);
+    $("acct").textContent = `${short(me)} · ${Number(fmt(bal)).toFixed(3)} POT`;
+    $("connectBtn").textContent = "Connected";
+    await loadProjects();
+  } catch (e) { toast(errMsg(e)); }
+}
+$("connectBtn").addEventListener("click", connect);
+$("refreshBtn").addEventListener("click", () => contract ? loadProjects() : connect());
+if (window.ethereum) {
+  window.ethereum.on?.("accountsChanged", () => connect());
+  window.ethereum.on?.("chainChanged", () => location.reload());
+}
+
+async function send(label, fn) {
+  if (!contract) return toast("Connect your wallet first.");
+  try {
+    toast(`${label}: confirm in your wallet…`, 60000);
+    const tx = await fn();
+    toast(`${label}: waiting for block…`, 60000);
+    await tx.wait();
+    toast(`${label}: done ✔`);
+    await loadProjects();
+    const bal = await provider.getBalance(me);
+    $("acct").textContent = `${short(me)} · ${Number(fmt(bal)).toFixed(3)} POT`;
+  } catch (e) { toast(`${label} failed: ${errMsg(e)}`, 7000); }
+}
+
+// ---------- create ----------
+$("createBtn").addEventListener("click", () => {
+  const title = $("title").value.trim();
+  const freelancer = $("freelancer").value.trim();
+  const arbiter = $("arbiter").value.trim() || ethers.ZeroAddress;
+  if (!title) return toast("Please enter a title.");
+  if (!ethers.isAddress(freelancer)) return toast("Freelancer address is not valid.");
+  if (!ethers.isAddress(arbiter)) return toast("Arbiter address is not valid.");
+  let amts; try { amts = amounts(); } catch { return toast("Check the milestone amounts."); }
+  if (amts.some((a) => a === 0n)) return toast("Every milestone needs an amount above 0.");
+  const total = amts.reduce((a, b) => a + b, 0n);
+  const review = BigInt(Math.max(1, Number($("review").value) || 1) * 60);
+  send("Create project", () => contract.createProject(freelancer, arbiter, amts, review, title, { value: total }));
+});
+
+// ---------- list ----------
+async function loadProjects() {
+  const box = $("projects");
+  box.innerHTML = `<p class="empty">Loading…</p>`;
+  try {
+    const ids = [...new Set((await contract.getProjectsOf(me)).map((x) => x.toString()))].reverse();
+    if (!ids.length) { box.innerHTML = `<p class="empty">No projects yet. Create one above.</p>`; return; }
+    // use chain time (not the browser clock) so review deadlines match the contract
+    const now = Number((await provider.getBlock("latest")).timestamp);
+    box.innerHTML = "";
+    for (const id of ids) {
+      const [p, ms] = await Promise.all([contract.getProject(id), contract.getMilestones(id)]);
+      const roles = [];
+      if (p.client.toLowerCase() === me) roles.push("Client");
+      if (p.freelancer.toLowerCase() === me) roles.push("Freelancer");
+      if (p.arbiter.toLowerCase() === me) roles.push("Arbiter");
+      const isC = roles.includes("Client"), isF = roles.includes("Freelancer"), isA = roles.includes("Arbiter");
+      const el = document.createElement("div"); el.className = "project";
+      const state = p.closed ? "Closed" : p.accepted ? "In progress" : "Waiting for freelancer";
+      el.innerHTML = `
+        <div class="project-head">
+          <h3>#${id} · ${escapeHtml(p.title)} ${roles.map((r) => `<span class="chip">${r}</span>`).join("")}</h3>
+          <strong>${fmt(p.totalAmount)} POT</strong>
+        </div>
+        <div class="meta">${state} · Client ${short(p.client)} · Freelancer ${short(p.freelancer)} · Arbiter ${p.arbiter === ethers.ZeroAddress ? "none" : short(p.arbiter)} · Review ${Number(p.reviewPeriod) / 60} min</div>
+        <div class="actions" style="justify-content:flex-start;margin-bottom:6px"></div>`;
+      const top = el.querySelector(".actions");
+      if (isF && !p.accepted && !p.closed) top.appendChild(btn("Accept job", () => send("Accept", () => contract.acceptProject(id))));
+      if (isC && !p.accepted && !p.closed) top.appendChild(btn("Cancel & refund", () => send("Cancel", () => contract.cancelProject(id)), "bad"));
+      if (isF && p.accepted && !p.closed && ms.some((m) => Number(m.status) === 0))
+        top.appendChild(btn("Withdraw from job", () => send("Withdraw", () => contract.withdrawFromProject(id)), "ghost"));
+
+      ms.forEach((m, i) => {
+        const s = Number(m.status);
+        const deadline = Number(m.submittedAt) + Number(p.reviewPeriod);
+        const row = document.createElement("div"); row.className = "ms";
+        let info = m.proof ? `Proof: ${linkify(m.proof)}` : "";
+        if (s === 1) info += ` · ${deadline > now ? `review ends in ${Math.ceil((deadline - now) / 60)} min` : "review period over"}`;
+        row.innerHTML = `<div><div>${fmt(m.amount)} POT</div><div class="status s${s}">${i + 1}. ${STATUS[s]}</div></div>
+          <div class="proof">${info}</div><div class="actions"></div>`;
+        const a = row.querySelector(".actions");
+        if (isF && p.accepted && !p.closed && s === 0)
+          a.appendChild(btn("Submit work", () => {
+            const proof = prompt("Link or hash of your delivered work:");
+            if (proof) send("Submit", () => contract.submitMilestone(id, i, proof.trim()));
+          }));
+        if (isC && s === 1) a.appendChild(btn("Approve & pay", () => send("Approve", () => contract.approveMilestone(id, i))));
+        if (isC && s === 1 && p.arbiter !== ethers.ZeroAddress && deadline > now)
+          a.appendChild(btn("Dispute", () => send("Dispute", () => contract.disputeMilestone(id, i)), "ghost"));
+        if (isF && s === 1 && deadline <= now) a.appendChild(btn("Claim payment", () => send("Claim", () => contract.claimAfterTimeout(id, i))));
+        if (isA && s === 2) {
+          a.appendChild(btn("Pay freelancer", () => send("Resolve", () => contract.resolveDispute(id, i, true))));
+          a.appendChild(btn("Refund client", () => send("Resolve", () => contract.resolveDispute(id, i, false)), "ghost"));
+        }
+        el.appendChild(row);
+      });
+      box.appendChild(el);
+    }
+  } catch (e) { box.innerHTML = `<p class="empty">Could not load projects: ${escapeHtml(errMsg(e))}. Check contractAddress in config.js.</p>`; }
+}
+
+function btn(text, onClick, cls = "") {
+  const b = document.createElement("button"); b.textContent = text; b.className = `small ${cls}`; b.onclick = onClick; return b;
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function linkify(s) { const e = escapeHtml(s); return /^https?:\/\//.test(s) ? `<a href="${e}" target="_blank" rel="noopener">${e}</a>` : e; }
+</script>
+</body>
+</html>

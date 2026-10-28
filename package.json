@@ -1,0 +1,19 @@
+{
+  "name": "milestonepay",
+  "version": "1.0.0",
+  "description": "Milestone-based freelancer escrow on Portaldot, paid in native POT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:offline": "USE_LOCAL_SOLC=1 hardhat test",
+    "deploy": "hardhat run scripts/deploy.js --network portaldot",
+    "abi": "node scripts/export-abi.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "dotenv": "^18.0.9",
+    "hardhat": "^2.29.1",
+    "solc": "0.8.24"
+  }
+}
