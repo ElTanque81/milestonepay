@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deploy MilestonePay</title>
+<link rel="icon" href="favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#4f46e5; --brand2:#06b6d4; --ok:#059669; --bad:#dc2626; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b1020; --card:#121a2e; --text:#e2e8f0; --muted:#94a3b8; --line:#1f2a44; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:Inter, system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:720px; margin:0 auto; padding:40px 16px 64px; display:grid; gap:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; }
+  h1 { margin:0; font-size:24px; display:flex; align-items:center; gap:10px; }
+  h1 img { width:36px; height:36px; }
+  h1 span { color:var(--brand); }
+  p { color:var(--muted); line-height:1.5; margin:8px 0 0; }
+  button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:12px 18px; cursor:pointer;
+    background:linear-gradient(135deg, var(--brand), var(--brand2)); color:#fff; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  #log { font-family:ui-monospace, Menlo, monospace; font-size:13px; white-space:pre-wrap; word-break:break-all;
+    background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px; min-height:80px; margin-top:16px; }
+  .result { display:none; }
+  .field { margin-top:14px; }
+  .field label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; }
+  .field div { display:flex; gap:8px; }
+  .field input { flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); font:13px ui-monospace, Menlo, monospace; }
+  .field button { padding:8px 12px; font-size:13px; }
+  .ok { color:var(--ok); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h1><img src="favicon.png" alt="" />Deploy Milestone<span>Pay</span></h1>
+    <p>Deploys the MilestonePay contract to the <b>PortaldotV3 Testnet</b> with your MetaMask account. Gas is paid in tPOTv3. Use this instead of Remix: Portaldot reports very large gas numbers that Remix can’t handle.</p>
+    <div class="row">
+      <button id="connectBtn">1 · Connect MetaMask</button>
+      <button id="deployBtn" disabled>2 · Deploy contract</button>
+    </div>
+    <div id="log">Waiting…</div>
+  </section>
+
+  <section class="card result" id="result">
+    <h1 style="font-size:20px">✅ Deployed</h1>
+    <p>Copy both values and send them on. They go into <code>config.js</code>, the README and the DoraHacks submission.</p>
+    <div class="field"><label>Contract address</label><div><input id="addr" readonly /><button data-copy="addr">Copy</button></div></div>
+    <div class="field"><label>Transaction hash</label><div><input id="txh" readonly /><button data-copy="txh">Copy</button></div></div>
+    <p id="codeCheck"></p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="abi.js"></script>
+<script>
+const CFG = window.MILESTONEPAY_CONFIG;
+const $ = (id) => document.getElementById(id);
+let provider, signer;
+
+function log(line) { const l = $("log"); l.textContent = (l.textContent === "Waiting…" ? "" : l.textContent + "\n") + line; }
+function errMsg(e) { return e?.shortMessage || e?.reason || e?.info?.error?.message || e?.message || String(e); }
+
+async function ensureNetwork() {
+  const hex = "0x" + Number(CFG.chainId).toString(16);
+  try {
+    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+  } catch (e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{
+        chainId: hex, chainName: CFG.chainName, rpcUrls: [CFG.rpcUrl], nativeCurrency: CFG.currency }] });
+    } else throw e;
+  }
+}
+
+$("connectBtn").onclick = async () => {
+  if (!window.ethereum) return log("No wallet found. Open this page in the browser that has MetaMask.");
+  try {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    await ensureNetwork();
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    const me = await signer.getAddress();
+    const net = await provider.getNetwork();
+    const bal = await provider.getBalance(me);
+    log(`Account:  ${me}`);
+    log(`Network:  chainId ${net.chainId}`);
+    log(`Balance:  ${ethers.formatUnits(bal, CFG.currency.decimals)} ${CFG.currency.symbol}`);
+    if (Number(net.chainId) !== Number(CFG.chainId)) return log("⚠ Wrong network. Switch MetaMask to PortaldotV3 Testnet.");
+    if (bal === 0n) return log("⚠ Balance is 0. Fund the mapped SS58 address of this account first.");
+    $("deployBtn").disabled = false;
+  } catch (e) { log("Error: " + errMsg(e)); }
+};
+
+$("deployBtn").onclick = async () => {
+  $("deployBtn").disabled = true;
+  try {
+    const factory = new ethers.ContractFactory(window.MILESTONEPAY_ABI, window.MILESTONEPAY_BYTECODE, signer);
+    const req = await factory.getDeployTransaction();
+    log("Estimating gas…");
+    try {
+      const gas = await provider.estimateGas({ ...req, from: await signer.getAddress() });
+      log(`Estimated gas: ${gas.toString()}`);
+    } catch (e) { log("Gas estimate failed (MetaMask will retry): " + errMsg(e)); }
+    log("Confirm the transaction in MetaMask…");
+    const tx = await signer.sendTransaction(req);
+    log(`Sent. Tx hash: ${tx.hash}`);
+    log("Waiting for the block…");
+    const rc = await tx.wait();
+    if (rc.status !== 1) throw new Error("Transaction reverted");
+    const address = rc.contractAddress;
+    log(`Contract address: ${address}`);
+    $("addr").value = address; $("txh").value = tx.hash;
+    $("result").style.display = "block";
+    const code = await provider.getCode(address);
+    $("codeCheck").innerHTML = code && code !== "0x"
+      ? `<span class="ok">Contract code found on chain ✔</span>`
+      : "No code found at this address yet. Wait a moment and reload.";
+    try {
+      const c = new ethers.Contract(address, window.MILESTONEPAY_ABI, provider);
+      log(`projectCount() = ${await c.projectCount()} ✔ contract responds`);
+    } catch (e) { log("Read check failed: " + errMsg(e)); }
+  } catch (e) {
+    log("Error: " + errMsg(e));
+    $("deployBtn").disabled = false;
+  }
+};
+
+document.querySelectorAll("[data-copy]").forEach((b) => b.onclick = async () => {
+  await navigator.clipboard.writeText($(b.dataset.copy).value); b.textContent = "Copied ✔";
+  setTimeout(() => (b.textContent = "Copy"), 1500);
+});
+</script>
+</body>
+</html>

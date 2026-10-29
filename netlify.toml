@@ -1,0 +1,4 @@
+# Static hosting of the MilestonePay dApp (no build step)
+[build]
+  publish = "frontend"
+  command = "echo 'static frontend, no build'"
