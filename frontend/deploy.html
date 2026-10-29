@@ -39,6 +39,7 @@
     <p>Deploys the MilestonePay contract to the <b>PortaldotV3 Testnet</b> with your MetaMask account. Gas is paid in tPOTv3. Use this instead of Remix: Portaldot reports very large gas numbers that Remix can’t handle.</p>
     <div class="row">
       <button id="connectBtn">1 · Connect MetaMask</button>
+      <button id="costBtn" disabled>Check deploy costs</button>
       <button id="deployBtn" disabled>2 · Deploy contract</button>
     </div>
     <div id="log">Waiting…</div>
@@ -92,7 +93,35 @@ $("connectBtn").onclick = async () => {
     if (Number(net.chainId) !== Number(CFG.chainId)) return log("⚠ Wrong network. Switch MetaMask to PortaldotV3 Testnet.");
     if (bal === 0n) return log("⚠ Balance is 0. Fund the mapped SS58 address of this account first.");
     $("deployBtn").disabled = false;
+    $("costBtn").disabled = false;
   } catch (e) { log("Error: " + errMsg(e)); }
+};
+
+// Dry-run cost check: estimates only, nothing is sent.
+// Deploys of N bytes of dummy code show the fixed part and the per-byte part.
+function dummyInit(n) {
+  return "0x61" + n.toString(16).padStart(4, "0") + "80600c6000396000f3" + "00".repeat(n);
+}
+$("costBtn").onclick = async () => {
+  $("costBtn").disabled = true;
+  const from = await signer.getAddress();
+  const fmt = (wei) => Number(ethers.formatUnits(wei, CFG.currency.decimals)).toFixed(4);
+  log("\n--- Cost check (estimates only, nothing is sent) ---");
+  try {
+    const fee = await provider.getFeeData();
+    const gp = fee.gasPrice ?? 0n;
+    log(`gasPrice: ${gp.toString()} wei`);
+    const cases = [["dummy 100 bytes", dummyInit(100)], ["dummy 2000 bytes", dummyInit(2000)],
+                   ["dummy 8600 bytes", dummyInit(8600)], ["MilestonePay", window.MILESTONEPAY_BYTECODE]];
+    for (const [name, data] of cases) {
+      try {
+        const g = await provider.estimateGas({ from, data });
+        log(`${name.padEnd(18)} gas ${g.toString().padStart(20)}  ≈ ${fmt(g * gp)} ${CFG.currency.symbol}`);
+      } catch (e) { log(`${name.padEnd(18)} estimate failed: ${errMsg(e)}`); }
+    }
+    log("--- end of cost check ---");
+  } catch (e) { log("Cost check error: " + errMsg(e)); }
+  $("costBtn").disabled = false;
 };
 
 $("deployBtn").onclick = async () => {
