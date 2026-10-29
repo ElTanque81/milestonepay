@@ -224,15 +224,21 @@ $("createBtn").addEventListener("click", () => {
 });
 
 // ---------- list ----------
+// Each call gets a sequence number; only the newest call may render.
+// Wallet events can trigger loadProjects twice in a row, which used to
+// interleave both renders and show every project twice.
+let loadSeq = 0;
 async function loadProjects() {
+  const seq = ++loadSeq;
   const box = $("projects");
   box.innerHTML = `<p class="empty">Loading…</p>`;
+  const frag = document.createDocumentFragment();
   try {
     const ids = [...new Set((await contract.getProjectsOf(me)).map((x) => x.toString()))].reverse();
+    if (seq !== loadSeq) return;
     if (!ids.length) { box.innerHTML = `<p class="empty">No projects yet. Create one above.</p>`; return; }
     // use chain time (not the browser clock) so review deadlines match the contract
     const now = Number((await provider.getBlock("latest")).timestamp);
-    box.innerHTML = "";
     for (const id of ids) {
       const [p, ms] = await Promise.all([contract.getProject(id), contract.getMilestones(id)]);
       const roles = [];
@@ -279,9 +285,10 @@ async function loadProjects() {
         }
         el.appendChild(row);
       });
-      box.appendChild(el);
+      frag.appendChild(el);
     }
-  } catch (e) { box.innerHTML = `<p class="empty">Could not load projects: ${escapeHtml(errMsg(e))}. Check contractAddress in config.js.</p>`; }
+    if (seq === loadSeq) box.replaceChildren(frag);
+  } catch (e) { if (seq !== loadSeq) return; box.innerHTML = `<p class="empty">Could not load projects: ${escapeHtml(errMsg(e))}. Check contractAddress in config.js.</p>`; }
 }
 
 function btn(text, onClick, cls = "") {
