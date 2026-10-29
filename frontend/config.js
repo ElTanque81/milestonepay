@@ -1,6 +1,6 @@
 // PortaldotV3 testnet (source: official PortaldotV3 Testnet Guide, endpoints as of Oct 16, 2026)
 window.MILESTONEPAY_CONFIG = {
-  contractAddress: "0xREPLACE_WITH_DEPLOYED_ADDRESS", // from deployment.json after `npm run deploy`
+  contractAddress: "0x10B3B2F22Cb94586d97f40000AAC89c66488a5ba", // deployed Oct 29, 2026
   chainId: 420420777,
   chainName: "PortaldotV3 Testnet",
   rpcUrl: "https://test-evm-rpc-v3.portaldot.dev",

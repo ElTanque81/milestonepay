@@ -46,15 +46,17 @@ No platform fee, no middleman holding funds — just a contract on Portaldot.
 | EVM RPC | `https://test-evm-rpc-v3.portaldot.dev` |
 | Chain ID | `420420777` |
 | Token | `tPOTv3` |
-| Contract | `0x…` ← **fill in after deploy** |
-| Deploy tx | `0x…` |
+| Contract | `0x10B3B2F22Cb94586d97f40000AAC89c66488a5ba` |
+| Deploy tx | `0x55f7437882d526e509326a046205fcd8d51254905717eac82d9bbe1a625dc1fb` |
+| Live dApp | https://milestonepay-portaldot.netlify.app |
+| Deploy cost | ≈ 687 tPOTv3 (mostly the per-byte storage deposit for 8.6 KB of code) |
 | Node explorer | https://node-console.portaldot.dev |
 
 ## Demo
 
 🎬 Demo video: https://youtu.be/BFh4mn1Gpcw *(recorded on a local test chain — testnet video follows)*
 
-Live frontend: **link here** (e.g. Netlify / GitHub Pages)
+Live frontend: https://milestonepay-portaldot.netlify.app
 
 ## Milestone lifecycle
 
@@ -131,7 +133,7 @@ assets/                      logo
 Built during Portaldot Hacker House 2026 (Oct 14 – Nov 6, 2026).
 
 - 2026-10-28 — contract, tests, frontend, logo
-- 2026-11-0x — Portaldot testnet deployment
+- 2026-10-29 — deployed to PortaldotV3 Testnet via MetaMask (deploy.html), frontend live on Netlify
 - 2026-11-0x — demo video & submission
 
 ## Credits
