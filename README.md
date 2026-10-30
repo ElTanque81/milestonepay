@@ -54,7 +54,11 @@ No platform fee, no middleman holding funds — just a contract on Portaldot.
 
 ## Demo
 
-🎬 Demo video: https://youtu.be/BFh4mn1Gpcw *(recorded on a local test chain — testnet video follows)*
+🎬 **Demo video (live on PortaldotV3 Testnet):** https://youtu.be/MER1Y2UUIH8
+
+Real transactions signed in the wallet: create & fund a 96 POT project → freelancer accepts → milestone submitted and approved (5 POT paid) → freelancer withdraws, 91 POT refunded automatically.
+
+<sub>Earlier walkthrough on a local test chain: https://youtu.be/BFh4mn1Gpcw</sub>
 
 Live frontend: https://milestonepay-portaldot.netlify.app
 
@@ -134,7 +138,7 @@ Built during Portaldot Hacker House 2026 (Oct 14 – Nov 6, 2026).
 
 - 2026-10-28 — contract, tests, frontend, logo
 - 2026-10-29 — deployed to PortaldotV3 Testnet via MetaMask (deploy.html), frontend live on Netlify
-- 2026-11-0x — demo video & submission
+- 2026-10-30 — end-to-end demo with real testnet transactions, duplicate-render fix in the frontend
 
 ## Credits
 
